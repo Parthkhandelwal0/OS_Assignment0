@@ -51,7 +51,7 @@ typedef struct threadControlBlock
 	mypthread_t threadId;
 
 	// thread context
-	ucontext_t cctx;
+	ucontext_t ctx;
 
 	// thread status
 	int status;
@@ -63,18 +63,18 @@ typedef struct threadControlBlock
 } tcb;
 
 
-typedef struct thread{
+typedef struct mypthread{
 
 	tcb * threadControlBlock;
 
-} thread;
+} mypthread;
 
 /* mutex struct definition */
 typedef struct mypthread_mutex_t
 {
 
 	// YOUR CODE HERE
-	//flag is used to indicate whether mutex is available or nor
+	//flag is used to indicate whether mutex is available or not
 	int flag;
 
 	//pointer to the thread holding the mutex

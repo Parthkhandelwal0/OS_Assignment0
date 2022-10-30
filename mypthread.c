@@ -7,7 +7,20 @@
 
 // INITAILIZE ALL YOUR VARIABLES HERE
 // YOUR CODE HERE
+#define STACK_SIZE SIGSTKSZ
 
+//this is used to assign unique tid value to each thread 
+mypthread_t threadIdValue = 1;
+
+struct runqueue * jobQueue;
+
+mypthread * currentThread = NULL;
+
+ucontext_t schedulerContext;
+
+void addQueue(mypthread * newThread, runqueue * queue);
+
+//void addQueue(thread * newThread, runqueue * queue);
 
 /* create a new thread */
 int mypthread_create(mypthread_t * thread, pthread_attr_t * attr, void *(*function)(void*), void * arg)
@@ -19,6 +32,47 @@ int mypthread_create(mypthread_t * thread, pthread_attr_t * attr, void *(*functi
 	   // allocate heap space for this thread's stack
 	   // after everything is all set, push this thread into the ready queue
 
+	   //creating the thread  
+	mypthread * newThread = (mypthread *)malloc(sizeof (mypthread));
+
+	//Allocating memory for thread control block
+	newThread -> threadControlBlock = (tcb *)malloc(sizeof(tcb));
+
+
+	//setting up the context and stack for this thread
+	ucontext_t nctx;
+	if (getcontext(&nctx) < 0){
+		perror("getcontext");
+		exit(1);
+	}
+	void * thisStack = malloc(STACK_SIZE);
+	nctx.uc_link = NULL;
+	nctx.uc_stack.ss_sp = thisStack;
+	nctx.uc_stack.ss_size = STACK_SIZE;
+	nctx.uc_stack.ss_flags = 0;
+
+	//Modifying the context of thread by passing the function and arguments
+	if (arg == NULL){
+		makecontext(&nctx, (void *)function, 0);
+	}else{
+		makecontext(&nctx, (void *)function, 1,arg);
+	}
+	
+	//assigning a unique id to this thread
+	*thread = threadIdValue;
+	(newThread -> threadControlBlock) -> threadId = *thread;
+	threadIdValue++;
+
+	//updating the status to READY state
+	(newThread -> threadControlBlock) -> status = READY;
+
+	//Updating the priority of thread
+	(newThread -> threadControlBlock) -> priority = 1; //check
+
+	//Update the tcb context for this thread
+	(newThread -> threadControlBlock) -> ctx = nctx;
+
+	addQueue(newThread, jobQueue);
 
 	return 0;
 };
@@ -29,8 +83,12 @@ int mypthread_yield()
 	// YOUR CODE HERE
 	
 	// change current thread's state from Running to Ready
+	(currentThread -> threadControlBlock) -> status = READY;
+
 	// save context of this thread to its thread control block
 	// switch from this thread's context to the scheduler's context
+	swapcontext(&((currentThread -> threadControlBlock)->ctx), &schedulerContext);
+
 
 	return 0;
 };
@@ -127,6 +185,9 @@ static void sched_RR()
 	
 	// Your own implementation of RR
 	// (feel free to modify arguments and return types)
+	// #if defined(MLFQ)
+	// #elseif definde(PSJF)
+	// #endif
 	
 	return;
 }
