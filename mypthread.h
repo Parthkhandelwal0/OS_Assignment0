@@ -48,7 +48,7 @@ typedef struct threadControlBlock
 	// thread priority
 	// And more ...
 	// thread Id
-	worker_t threadId;
+	mypthread_t threadId;
 
 	// thread context
 	ucontext_t cctx;
@@ -86,7 +86,7 @@ typedef struct mypthread_mutex_t
 // Feel free to add your own auxiliary data structures (linked list or queue etc...)
 typedef struct node{
 
-	worker * thr;
+	thread * thr;
 	struct node * next;
 
 
