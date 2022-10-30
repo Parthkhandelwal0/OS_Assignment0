@@ -13,8 +13,7 @@
 
 // defined timeQUANTUM to 12 ms,
 
-#define QUANTUMTIME 12
-
+#define TIMEQUANTUM 12
 
 #define READY 0
 #define SCHEDULED 1
@@ -38,8 +37,7 @@ typedef uint mypthread_t;
 
 	/* add important states in a thread control block */
 typedef struct threadControlBlock
-{
-	// YOUR CODE HERE	
+{	
 	
 	// thread Id
 	// thread status
@@ -47,18 +45,18 @@ typedef struct threadControlBlock
 	// thread stack
 	// thread priority
 	// And more ...
+	
 	// thread Id
 	mypthread_t threadId;
+	
+	// thread status
+	int status;
 
 	// thread context
 	ucontext_t cctx;
-
-	// thread status
-	int status;
 	
 	//thread priority
 	int priority;
-
 
 } tcb;
 
@@ -70,27 +68,25 @@ typedef struct thread{
 } thread;
 
 /* mutex struct definition */
-typedef struct mypthread_mutex_t
-{
+typedef struct mypthread_mutex_t{
 
-	// YOUR CODE HERE
-	//flag is used to indicate whether mutex is available or nor
+	//flag is used to indicate whether mutex is available or not
 	int flag;
 
 	//pointer to the thread holding the mutex
-	thread * t;
+	thread *t;
 	
 } mypthread_mutex_t;
 
 
 // Feel free to add your own auxiliary data structures (linked list or queue etc...)
+
 typedef struct node{
 
-	thread * thr;
-	struct node * next;
+	thread *thr;
+	struct node *next;
 
-
-}node;
+} node;
 
 
 typedef struct runqueue{
@@ -99,12 +95,8 @@ typedef struct runqueue{
 	node * head;
 	//tail
 	node * tail;
-
 	
-
 } runqueue;
-
-
 
 /* Function Declarations: */
 
