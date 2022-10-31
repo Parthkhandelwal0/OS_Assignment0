@@ -18,6 +18,10 @@ mypthread * currentThread = NULL;
 
 ucontext_t schedulerContext;
 
+//Arrays to store the terminated threads and the exit values of all the threads
+void * thread_exitValues[100];
+int threadsTerminated[100];
+
 void addQueue(mypthread * newThread, runqueue * queue);
 
 //void addQueue(thread * newThread, runqueue * queue);
@@ -97,13 +101,31 @@ int mypthread_yield()
 void mypthread_exit(void *value_ptr)
 {
 	// YOUR CODE HERE
-
+	int i = currentThread->threadControlBlock->threadId;
 	// preserve the return value pointer if not NULL
+	if(value_ptr!=NULL){
+		thread_exitValues[i]=value_ptr;
+	}
+	else{
+		thread_exitValues[i]=NULL;
+	}
+	//adding this thread to terminated threads array
+	threadsTerminated[i]=1;
+
 	// deallocate any dynamic memory allocated when starting this thread
+	freeCurrentThread(currentThread);
 	
 	return;
 };
 
+void freeCurrentThread(mypthread * thread){
+
+	//Deallocating all the dynamic memory created for this thread
+	free(((thread -> threadControlBlock) -> ctx).uc_stack.ss_sp);
+	free(thread -> threadControlBlock);
+	free(thread);
+
+}
 
 /* Wait for thread termination */
 int mypthread_join(mypthread_t thread, void **value_ptr)
@@ -111,7 +133,14 @@ int mypthread_join(mypthread_t thread, void **value_ptr)
 	// YOUR CODE HERE
 
 	// wait for a specific thread to terminate
+	while(threadsTerminated[thread]){
+	}
+
+	if(value_ptr!=NULL){
+		*value_ptr=thread_exitValues[thread];
+	}
 	// deallocate any dynamic memory created by the joining thread
+	freeCurrentThread(thread);
 
 	return 0;
 };
