@@ -54,9 +54,6 @@ typedef struct threadControlBlock
 
 	// thread context
 	ucontext_t ctx;
-
-	// thread status
-	int status;
 	
 	//thread priority
 	int priority;
