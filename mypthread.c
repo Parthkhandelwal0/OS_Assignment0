@@ -1,6 +1,6 @@
 // File:	mypthread.c
 
-// List all group members' names:
+// List all group members' names: Parth Khandelwal, Lakshit Pant (lp749)
 // iLab machine tested on:
 
 #include "mypthread.h"
@@ -12,18 +12,25 @@
 //this is used to assign unique tid value to each thread 
 mypthread_t threadIdValue = 1;
 
+//highest priority case
 struct runqueue * jobQueue;
 
+//current working thread
 mypthread * currentThread = NULL;
 
 //queue for all blocked threads
 struct runqueue * blockedThreads = NULL;
 
-//informing scheduler if the current thread has been blocked or not
+//variable informing scheduler if the current thread has been blocked or not
 int isThreadBlocked = 0;
+
+//variable informing scheduler if the current thread yielded within its time slice
+int threadYield = 0;
 
 //context of the scheduler
 ucontext_t schedulerContext;
+//thread of the scheduler
+mypthread *schedulerThread;
 
 //Arrays to store the terminated threads and the exit values of all the threads
 void * thread_exitValues[100];
@@ -31,7 +38,7 @@ int threadsTerminated[100];
 
 void addQueue(mypthread * newThread, runqueue * queue);
 
-//void addQueue(thread * newThread, runqueue * queue);
+bool isInitialized = false;
 
 /* create a new thread */
 int mypthread_create(mypthread_t * thread, pthread_attr_t * attr, void *(*function)(void*), void * arg)
@@ -247,7 +254,11 @@ static void schedule()
 	// else if (sched == MLFQ)
 	// 		sched_mlfq();
 
-	return;
+#ifndef MLFQ
+		sched_RR(jobQueue);
+	#else
+		sched_MLFQ();
+	#endif
 }
 
 /* Round Robin scheduling algorithm */
@@ -322,11 +333,9 @@ void releaseThreads() {
 
 	}
 
-	//Make the head and tail null as all jobs have moved
+	//all jobs have been moved so head and tail nulled
 	blockedThreads -> head = NULL;
 	blockedThreads -> tail = NULL;
 }
 
-// Feel free to add any other functions you need
 
-// YOUR CODE HERE
