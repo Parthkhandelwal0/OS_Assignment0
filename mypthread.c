@@ -16,6 +16,13 @@ struct runqueue * jobQueue;
 
 mypthread * currentThread = NULL;
 
+//queue for all blocked threads
+struct runqueue * blockedThreads = NULL;
+
+//informing scheduler if the current thread has been blocked or not
+int isThreadBlocked = 0;
+
+//context of the scheduler
 ucontext_t schedulerContext;
 
 //Arrays to store the terminated threads and the exit values of all the threads
@@ -152,6 +159,14 @@ int mypthread_mutex_init(mypthread_mutex_t *mutex, const pthread_mutexattr_t *mu
 	
 	//initialize data structures for this mutex
 
+	//invalid pointer check
+	if(mutex == NULL){
+		return = -1;
+	}
+
+	//flag initialized to 0
+	mutex->flag = 0;
+
 	return 0;
 };
 
@@ -163,7 +178,25 @@ int mypthread_mutex_lock(mypthread_mutex_t *mutex)
 		// use the built-in test-and-set atomic function to test the mutex
 		// if the mutex is acquired successfully, return
 		// if acquiring mutex fails, put the current thread on the blocked/waiting list and context switch to the scheduler thread
+
+		//using the test-and-set function to text mutex 
+		if(!(__atomic_test_and_set (&mutex->flag, 1) == 0)){
+
+			//mutex acquiring failed, current thread put on blocked list
+			currentThread -> threadControlBlock -> status = BLOCKED;
+			addQueue(currentThread, blockedThreads);
+
+			//to make sure the thread isnt scheduled, 1 is assigned to isthreadblocked
+			isThreadBlocked = 1;
+
+			//context switching to scheduler thread
+			swapcontext(&((currentThread->threadControlBlock)->ctx), &schedulerContext)
+
+		}
 		
+		//mutex's thread is assigned to current thread as mutex is acquired successfully
+		mutex->t = currentThread;
+		mutex->flag = 1;
 		return 0;
 };
 
@@ -175,6 +208,10 @@ int mypthread_mutex_unlock(mypthread_mutex_t *mutex)
 	// update the mutex's metadata to indicate it is unlocked
 	// put the thread at the front of this mutex's blocked/waiting queue in to the run queue
 
+	mutex -> flag = 0;
+	mutex ->t = NULL;
+	//releasing the threads in the blocked list into the run queue
+	releaseThreads()
 	return 0;
 };
 
@@ -185,6 +222,12 @@ int mypthread_mutex_destroy(mypthread_mutex_t *mutex)
 	// YOUR CODE HERE
 	
 	// deallocate dynamic memory allocated during mypthread_mutex_init
+	if(mutex==NULL){
+		return -1;
+	}
+	else{
+		return 0;
+	}
 
 	return 0;
 };
@@ -241,6 +284,47 @@ static void sched_MLFQ() {
 	// (feel free to modify arguments and return types)
 
 	return;
+}
+
+void releaseThreads() {
+	//each thread from the blocked list is added to runqueue, based on priority
+	//nodes in the blocked list freed
+	node *curr = blockedThreads -> head;
+	node *prev;
+	prev = curr;
+	while (curr != NULL){
+
+		curr->thr->threadControlBlock->status = READY;
+		#ifndef MLFQ
+
+			addQueue(curr -> thr, jobQueue);
+
+		#else
+
+			int threadPriority = curr -> thr -> threadControlBlock -> priority;
+					
+			if(threadPriority == 4){
+				addQueue(curr->thr, jobQueue);
+			}else if (threadPriority == 3){
+				addQueue(curr->thr, mlfqLvl3);
+			}else if (threadPriority == 2){
+				addQueue(curr->thr, mlfqLvl2);
+			}else{
+				addQueue(curr-> thr, mlfqLvl1);
+			}	
+
+		#endif
+
+		curr = curr -> next;
+		//free the memory for that job as it is moved to run queue 
+		free(prev);
+		prev = curr;
+
+	}
+
+	//Make the head and tail null as all jobs have moved
+	blockedThreads -> head = NULL;
+	blockedThreads -> tail = NULL;
 }
 
 // Feel free to add any other functions you need
