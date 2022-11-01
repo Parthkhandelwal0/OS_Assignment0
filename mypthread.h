@@ -1,6 +1,6 @@
 // File:	mypthread_t.h
 
-// List all group members' names:
+// List all group members' names: Parth Khandelwal(pk684), Lakshit Pant (lp749)
 // iLab machine tested on:
 
 #ifndef MYTHREAD_T_H
