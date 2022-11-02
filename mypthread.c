@@ -12,7 +12,12 @@
 //this is used to assign unique tid value to each thread 
 mypthread_t threadIdValue = 1;
 
-//highest priority case
+//levels of mlfq queue (lvl 1 = least priority)
+struct runqueue *mlfq_level1;
+struct runqueue *mlfq_level2;
+struct runqueue *mlfq_level3;
+
+//highest priority case (level 4)
 struct runqueue * jobQueue;
 
 //current working thread
@@ -317,13 +322,12 @@ void releaseThreads() {
 			if(threadPriority == 4){
 				addQueue(curr->thr, jobQueue);
 			}else if (threadPriority == 3){
-				addQueue(curr->thr, mlfqLvl3);
+				addQueue(curr->thr, mlfq_level3);
 			}else if (threadPriority == 2){
-				addQueue(curr->thr, mlfqLvl2);
+				addQueue(curr->thr, mlfq_level2);
 			}else{
-				addQueue(curr-> thr, mlfqLvl1);
+				addQueue(curr-> thr, mlfq_level1);
 			}	
-
 		#endif
 
 		curr = curr -> next;
